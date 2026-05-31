@@ -13,6 +13,7 @@
         <div class="nav-links">
           <a href="#modules">工作台</a>
           <a href="#data">学生管理</a>
+          <a href="#activityManage">活动发布</a>
           <a href="#summary">活动总览</a>
           <a href="#operations">活动办理</a>
           <a href="#records">报名记录</a>
@@ -63,7 +64,7 @@
           <article>
             <b>4</b>
             <h3>数据维护</h3>
-            <p>维护学生成员、报名记录和无效活动数据。</p>
+            <p>维护学生成员、活动发布、报名记录和无效活动数据。</p>
           </article>
         </div>
       </section>
@@ -92,6 +93,27 @@
           </div>
           <div id="studentCards" class="student-list"></div>
         </article>
+      </section>
+
+      <section class="panel" id="activityManage">
+        <div class="section-title">
+          <p class="eyebrow">Activity Publishing</p>
+          <h2>新增校园活动</h2>
+        </div>
+        <div class="form-grid activity-form">
+          <label>活动名称<input id="newActivityTitle" value="校园数据库实践开放课" /></label>
+          <label>活动积分<input id="newActivityPoints" type="number" min="0" step="1" value="3" /></label>
+          <label>活动分类<select id="newActivityCategory"></select></label>
+          <label>主办社团<select id="newActivityClub"></select></label>
+          <label>活动场地<select id="newActivityVenue"></select></label>
+          <label>活动容量<input id="newActivityCapacity" type="number" min="1" step="1" value="40" /></label>
+          <label>开始时间<input id="newActivityStart" type="datetime-local" value="2030-06-15T14:00" /></label>
+          <label>结束时间<input id="newActivityEnd" type="datetime-local" value="2030-06-15T16:00" /></label>
+          <label>报名截止<input id="newActivityDeadline" type="datetime-local" value="2030-06-14T23:00" /></label>
+          <label class="wide-field">活动说明<textarea id="newActivityDescription">面向全校学生开放，介绍数据库建模、查询和实践项目整理方法。</textarea></label>
+        </div>
+        <button id="addActivityButton" class="primary-button">发布活动</button>
+        <p class="hint">发布后活动状态为开放报名，会出现在活动总览和报名办理下拉列表中。</p>
       </section>
 
       <section class="panel" id="summary">

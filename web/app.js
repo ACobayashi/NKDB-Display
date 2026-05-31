@@ -1,7 +1,10 @@
 const state = {
   activities: [],
   students: [],
-  registrations: []
+  registrations: [],
+  categories: [],
+  clubs: [],
+  venues: []
 };
 
 const els = {
@@ -23,7 +26,17 @@ const els = {
   newStudentName: document.querySelector('#newStudentName'),
   newStudentMajor: document.querySelector('#newStudentMajor'),
   newStudentClass: document.querySelector('#newStudentClass'),
-  newStudentPoints: document.querySelector('#newStudentPoints')
+  newStudentPoints: document.querySelector('#newStudentPoints'),
+  newActivityTitle: document.querySelector('#newActivityTitle'),
+  newActivityDescription: document.querySelector('#newActivityDescription'),
+  newActivityCategory: document.querySelector('#newActivityCategory'),
+  newActivityClub: document.querySelector('#newActivityClub'),
+  newActivityVenue: document.querySelector('#newActivityVenue'),
+  newActivityStart: document.querySelector('#newActivityStart'),
+  newActivityEnd: document.querySelector('#newActivityEnd'),
+  newActivityDeadline: document.querySelector('#newActivityDeadline'),
+  newActivityCapacity: document.querySelector('#newActivityCapacity'),
+  newActivityPoints: document.querySelector('#newActivityPoints')
 };
 
 function formatDate(value) {
@@ -54,6 +67,7 @@ function showResult(payload) {
   const lines = [];
   if (payload.message) lines.push(payload.message);
   if (payload.userId) lines.push(`学生编号：${payload.userId}`);
+  if (payload.activityId) lines.push(`活动编号：${payload.activityId}`);
   if (payload.registrationId) lines.push(`报名编号：${payload.registrationId}`);
   if (payload.deleted) {
     if (payload.deleted.users !== undefined) {
@@ -69,9 +83,12 @@ function showResult(payload) {
 }
 
 function syncState(data) {
-  state.activities = data.activities;
-  state.students = data.students;
-  state.registrations = data.registrations;
+  state.activities = data.activities || [];
+  state.students = data.students || [];
+  state.registrations = data.registrations || [];
+  state.categories = data.categories || [];
+  state.clubs = data.clubs || [];
+  state.venues = data.venues || [];
   render();
 }
 
@@ -127,6 +144,16 @@ function render() {
   els.finishActivitySelect.innerHTML = activityOptions;
   els.deleteActivitySelect.innerHTML = activityOptions;
 
+  els.newActivityCategory.innerHTML = state.categories.map(category =>
+    option(category.category_name, category.category_id)
+  ).join('');
+  els.newActivityClub.innerHTML = state.clubs.map(club =>
+    option(club.club_name, club.club_id)
+  ).join('');
+  els.newActivityVenue.innerHTML = state.venues.map(venue =>
+    option(`${venue.building}${venue.room} · ${venue.venue_name}`, venue.venue_id)
+  ).join('');
+
   els.studentCards.innerHTML = state.students.map(student => `
     <div class="student-card">
       <div class="student-main">
@@ -165,6 +192,26 @@ async function createStudent() {
       major: els.newStudentMajor.value,
       className: els.newStudentClass.value,
       points: Number(els.newStudentPoints.value || 0)
+    })
+  });
+  syncState(payload.data);
+  showResult(payload);
+}
+
+async function createActivity() {
+  const payload = await api('/api/admin/activities', {
+    method: 'POST',
+    body: JSON.stringify({
+      title: els.newActivityTitle.value,
+      description: els.newActivityDescription.value,
+      categoryId: Number(els.newActivityCategory.value),
+      clubId: Number(els.newActivityClub.value),
+      venueId: Number(els.newActivityVenue.value),
+      startTime: els.newActivityStart.value,
+      endTime: els.newActivityEnd.value,
+      registrationDeadline: els.newActivityDeadline.value,
+      capacity: Number(els.newActivityCapacity.value || 0),
+      points: Number(els.newActivityPoints.value || 0)
     })
   });
   syncState(payload.data);
@@ -213,6 +260,14 @@ document.querySelector('#refreshButton').addEventListener('click', async () => {
 document.querySelector('#addStudentButton').addEventListener('click', async () => {
   try {
     await createStudent();
+  } catch (error) {
+    showResult(error.message);
+  }
+});
+
+document.querySelector('#addActivityButton').addEventListener('click', async () => {
+  try {
+    await createActivity();
   } catch (error) {
     showResult(error.message);
   }

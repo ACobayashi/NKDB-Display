@@ -68,10 +68,35 @@ function requireText(value, fieldName, maxLength) {
   return text;
 }
 
+function parseDateTime(value, fieldName) {
+  const text = requireText(value, fieldName, 19).replace('T', ' ');
+  const normalized = text.length === 16 ? `${text}:00` : text;
+  if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(normalized)) {
+    throw new Error(`${fieldName} 格式不正确`);
+  }
+  if (!Number.isFinite(new Date(normalized.replace(' ', 'T')).getTime())) {
+    throw new Error(`${fieldName} 不是有效时间`);
+  }
+  return normalized;
+}
+
+function dateTimeMillis(value) {
+  return new Date(value.replace(' ', 'T')).getTime();
+}
+
 async function getDashboardData() {
   const [activities] = await pool.query('SELECT * FROM v_activity_summary ORDER BY activity_id');
   const [students] = await pool.query(
     "SELECT user_id, student_no, name, major, class_name, points FROM users WHERE role = 'student' ORDER BY user_id"
+  );
+  const [categories] = await pool.query(
+    'SELECT category_id, category_name FROM activity_categories ORDER BY category_id'
+  );
+  const [clubs] = await pool.query(
+    'SELECT club_id, club_name FROM clubs ORDER BY club_id'
+  );
+  const [venues] = await pool.query(
+    "SELECT venue_id, venue_name, building, room, capacity FROM venues ORDER BY venue_id"
   );
   const [registrations] = await pool.query(`
     SELECT
@@ -89,7 +114,7 @@ async function getDashboardData() {
     ORDER BY r.registration_id
   `);
 
-  return { activities, students, registrations };
+  return { activities, students, registrations, categories, clubs, venues };
 }
 
 async function handleApi(req, res, url) {
@@ -108,6 +133,50 @@ async function handleApi(req, res, url) {
     if (req.method === 'GET' && url.pathname === '/api/activities') {
       const [rows] = await pool.query('SELECT * FROM v_activity_summary ORDER BY activity_id');
       sendJson(res, 200, { ok: true, data: rows });
+      return;
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/admin/activities') {
+      const body = await readBody(req);
+      const title = requireText(body.title, '活动名称', 120);
+      const description = String(body.description || '').trim();
+      const categoryId = parseId(body.categoryId, 'categoryId');
+      const clubId = parseId(body.clubId, 'clubId');
+      const venueId = parseId(body.venueId, 'venueId');
+      const startTime = parseDateTime(body.startTime, '开始时间');
+      const endTime = parseDateTime(body.endTime, '结束时间');
+      const registrationDeadline = parseDateTime(body.registrationDeadline, '报名截止时间');
+      const capacity = Number(body.capacity || 0);
+      const points = Number(body.points || 0);
+
+      if (!Number.isInteger(capacity) || capacity <= 0) {
+        throw new Error('活动容量必须是正整数');
+      }
+      if (!Number.isInteger(points) || points < 0) {
+        throw new Error('活动积分必须是非负整数');
+      }
+      if (dateTimeMillis(endTime) <= dateTimeMillis(startTime)) {
+        throw new Error('结束时间必须晚于开始时间');
+      }
+      if (dateTimeMillis(registrationDeadline) > dateTimeMillis(startTime)) {
+        throw new Error('报名截止时间不能晚于活动开始时间');
+      }
+
+      const [result] = await pool.query(
+        `
+          INSERT INTO activities
+            (title, description, category_id, club_id, venue_id, start_time, end_time, registration_deadline, capacity, points, status, created_by)
+          VALUES
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', 1)
+        `,
+        [title, description, categoryId, clubId, venueId, startTime, endTime, registrationDeadline, capacity, points]
+      );
+      sendJson(res, 201, {
+        ok: true,
+        message: '活动创建成功，已进入开放报名状态。',
+        activityId: result.insertId,
+        data: await getDashboardData()
+      });
       return;
     }
 

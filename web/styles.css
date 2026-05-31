@@ -35,7 +35,8 @@ a {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
@@ -289,7 +290,8 @@ label {
 }
 
 input,
-select {
+select,
+textarea {
   width: 100%;
   min-height: 42px;
   border: 1px solid #d9cfe0;
@@ -301,9 +303,21 @@ select {
 }
 
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   border-color: var(--purple);
   box-shadow: 0 0 0 4px rgba(104, 26, 113, 0.12);
+}
+
+textarea {
+  min-height: 90px;
+  padding: 10px 11px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.wide-field {
+  grid-column: span 2;
 }
 
 .primary-button,
@@ -528,6 +542,10 @@ tr:last-child td {
 
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .wide-field {
+    grid-column: span 1;
   }
 
   .hero h1 {
