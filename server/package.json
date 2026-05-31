@@ -1,0 +1,12 @@
+{
+  "name": "campus-activity-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/app.js"
+  },
+  "dependencies": {
+    "mysql2": "^3.11.5"
+  }
+}

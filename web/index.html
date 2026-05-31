@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>校园活动报名与积分管理系统</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <nav class="nav-bar">
+        <a class="brand" href="#top" aria-label="南开大学校园活动系统">
+          <img src="/assets/nku-logo-white.png" alt="南开大学" />
+        </a>
+        <div class="nav-actions">
+          <a href="#summary">统计视图</a>
+          <a href="#operations">数据库操作</a>
+          <a href="#records">报名记录</a>
+          <div class="db-status" id="dbStatus">数据库连接检测中</div>
+        </div>
+      </nav>
+
+      <section class="hero-content" id="top">
+        <div class="hero-copy">
+          <p class="eyebrow">Nankai University · Database Engineering</p>
+          <h1>校园活动报名与积分管理系统</h1>
+          <p class="hero-subtitle">面向课程答辩的数据库信息管理系统演示：活动查询、报名校验、积分结算与事务删除。</p>
+          <div class="hero-actions">
+            <a class="primary-link" href="#operations">开始演示</a>
+            <a class="ghost-link" href="#summary">查看视图结果</a>
+          </div>
+        </div>
+
+        <aside class="hero-brief" aria-label="评分点概览">
+          <img src="/assets/nku-motto-purple.png" alt="允公允能 日新月异" />
+          <div class="brief-grid">
+            <span>事务删除</span>
+            <span>触发器添加</span>
+            <span>存储过程更新</span>
+            <span>视图查询</span>
+          </div>
+        </aside>
+      </section>
+    </header>
+
+    <main class="layout">
+      <section class="stats-strip" aria-label="系统概览">
+        <div class="metric">
+          <span>活动总数</span>
+          <strong id="metricActivities">-</strong>
+        </div>
+        <div class="metric">
+          <span>开放报名</span>
+          <strong id="metricOpen">-</strong>
+        </div>
+        <div class="metric">
+          <span>报名记录</span>
+          <strong id="metricRegistrations">-</strong>
+        </div>
+        <div class="metric">
+          <span>学生积分</span>
+          <strong id="metricPoints">-</strong>
+        </div>
+      </section>
+
+      <section class="score-map" aria-label="报告评分点">
+        <article>
+          <span>15 分</span>
+          <strong>视图查询</strong>
+          <p>v_activity_summary</p>
+        </article>
+        <article>
+          <span>20 分</span>
+          <strong>触发器添加</strong>
+          <p>trg_before_registration_insert</p>
+        </article>
+        <article>
+          <span>18 分</span>
+          <strong>存储过程更新</strong>
+          <p>sp_finish_activity</p>
+        </article>
+        <article>
+          <span>13 分</span>
+          <strong>事务删除</strong>
+          <p>BEGIN / COMMIT / ROLLBACK</p>
+        </article>
+      </section>
+
+      <section class="panel summary-panel" id="summary">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">View Query</p>
+            <h2>活动统计视图</h2>
+          </div>
+          <button id="refreshButton" class="secondary-button">刷新数据</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>活动</th>
+                <th>分类</th>
+                <th>主办方</th>
+                <th>地点</th>
+                <th>容量</th>
+                <th>已报名</th>
+                <th>剩余</th>
+                <th>积分</th>
+                <th>状态</th>
+              </tr>
+            </thead>
+            <tbody id="activityRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="operation-grid" id="operations">
+        <article class="operation-card accent-trigger">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">Trigger Insert</p>
+              <h2>触发器控制报名</h2>
+            </div>
+            <span class="operation-index">01</span>
+          </div>
+          <div class="form-grid">
+            <label>
+              学生
+              <select id="studentSelect"></select>
+            </label>
+            <label>
+              活动
+              <select id="registerActivitySelect"></select>
+            </label>
+          </div>
+          <button id="registerButton" class="primary-button">提交报名</button>
+          <div class="quick-actions">
+            <button data-demo="triggerSuccess">成功案例</button>
+            <button data-demo="triggerFull">满员失败</button>
+            <button data-demo="triggerDuplicate">重复报名失败</button>
+          </div>
+          <pre class="code-note">INSERT INTO registrations (activity_id, user_id) VALUES (?, ?);
+-- BEFORE INSERT 触发器检查用户身份、截止时间、重复报名、容量限制</pre>
+        </article>
+
+        <article class="operation-card accent-procedure">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">Procedure Update</p>
+              <h2>存储过程积分结算</h2>
+            </div>
+            <span class="operation-index">02</span>
+          </div>
+          <div class="form-grid">
+            <label>
+              结算活动
+              <select id="finishActivitySelect"></select>
+            </label>
+            <label>
+              额外积分
+              <input id="extraPointsInput" type="number" min="0" step="1" value="0" />
+            </label>
+          </div>
+          <button id="finishButton" class="primary-button">执行结算</button>
+          <div class="quick-actions">
+            <button data-demo="procedureSuccess">成功结算活动 4</button>
+            <button data-demo="procedureFail">重复结算失败</button>
+          </div>
+          <pre class="code-note">CALL sp_finish_activity(?, ?);
+-- 存储过程批量更新 users、registrations、activities</pre>
+        </article>
+
+        <article class="operation-card accent-delete">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">Transaction Delete</p>
+              <h2>事务删除活动</h2>
+            </div>
+            <span class="operation-index">03</span>
+          </div>
+          <label>
+            删除活动
+            <select id="deleteActivitySelect"></select>
+          </label>
+          <button id="deleteButton" class="danger-button">事务删除</button>
+          <pre class="code-note">BEGIN;
+DELETE FROM activity_notices WHERE activity_id = ?;
+DELETE FROM registrations WHERE activity_id = ?;
+DELETE FROM activities WHERE activity_id = ?;
+COMMIT;
+-- 失败时 ROLLBACK</pre>
+        </article>
+
+        <article class="operation-card accent-result">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">Operation Result</p>
+              <h2>演示结果</h2>
+            </div>
+            <span class="operation-index">04</span>
+          </div>
+          <pre id="resultBox">等待操作。</pre>
+        </article>
+      </section>
+
+      <section class="records-grid" id="records">
+        <article class="panel">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">Students</p>
+              <h2>学生积分</h2>
+            </div>
+          </div>
+          <div id="studentCards" class="student-list"></div>
+        </article>
+
+        <article class="panel">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">Registrations</p>
+              <h2>报名记录</h2>
+            </div>
+            <span class="muted">registered 记录可签到</span>
+          </div>
+          <div id="registrationList" class="registration-list"></div>
+        </article>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
