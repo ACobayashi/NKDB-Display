@@ -5,3 +5,4 @@ npm-debug.log*
 report/REPORT_DRAFT.md
 report/scripts/
 report/*.docx
+report/screenshots/

@@ -18,7 +18,12 @@ const els = {
   metricActivities: document.querySelector('#metricActivities'),
   metricOpen: document.querySelector('#metricOpen'),
   metricRegistrations: document.querySelector('#metricRegistrations'),
-  metricPoints: document.querySelector('#metricPoints')
+  metricPoints: document.querySelector('#metricPoints'),
+  newStudentNo: document.querySelector('#newStudentNo'),
+  newStudentName: document.querySelector('#newStudentName'),
+  newStudentMajor: document.querySelector('#newStudentMajor'),
+  newStudentClass: document.querySelector('#newStudentClass'),
+  newStudentPoints: document.querySelector('#newStudentPoints')
 };
 
 function formatDate(value) {
@@ -44,6 +49,13 @@ function showResult(payload) {
   els.resultBox.textContent = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
 }
 
+function syncState(data) {
+  state.activities = data.activities;
+  state.students = data.students;
+  state.registrations = data.registrations;
+  render();
+}
+
 async function api(path, options = {}) {
   const response = await fetch(path, {
     headers: { 'Content-Type': 'application/json' },
@@ -58,10 +70,7 @@ async function api(path, options = {}) {
 
 async function refresh() {
   const payload = await api('/api/dashboard');
-  state.activities = payload.data.activities;
-  state.students = payload.data.students;
-  state.registrations = payload.data.registrations;
-  render();
+  syncState(payload.data);
 }
 
 function render() {
@@ -103,7 +112,7 @@ function render() {
     <div class="student-card">
       <div>
         <strong>${student.name}</strong>
-        <div class="muted">${student.major} / ${student.class_name}</div>
+        <div class="muted">${student.student_no} / ${student.major} / ${student.class_name}</div>
       </div>
       <div class="points">${student.points} 分</div>
     </div>
@@ -119,10 +128,25 @@ function render() {
       ${
         registration.status === 'registered'
           ? `<button data-check-in="${registration.registration_id}">签到</button>`
-          : `<span class="badge ${registration.status === 'completed' ? 'finished' : 'open'}">${registration.status}</span>`
+          : `<span class="badge ${registration.status}">${registration.status}</span>`
       }
     </div>
   `).join('');
+}
+
+async function createStudent() {
+  const payload = await api('/api/admin/students', {
+    method: 'POST',
+    body: JSON.stringify({
+      studentNo: els.newStudentNo.value,
+      name: els.newStudentName.value,
+      major: els.newStudentMajor.value,
+      className: els.newStudentClass.value,
+      points: Number(els.newStudentPoints.value || 0)
+    })
+  });
+  syncState(payload.data);
+  showResult(payload);
 }
 
 async function submitRegistration(studentId, activityId) {
@@ -130,10 +154,7 @@ async function submitRegistration(studentId, activityId) {
     method: 'POST',
     body: JSON.stringify({ studentId, activityId })
   });
-  state.activities = payload.data.activities;
-  state.students = payload.data.students;
-  state.registrations = payload.data.registrations;
-  render();
+  syncState(payload.data);
   showResult(payload);
 }
 
@@ -142,21 +163,13 @@ async function finishActivity(activityId, extraPoints = 0) {
     method: 'POST',
     body: JSON.stringify({ activityId, extraPoints })
   });
-  state.activities = payload.data.activities;
-  state.students = payload.data.students;
-  state.registrations = payload.data.registrations;
-  render();
+  syncState(payload.data);
   showResult(payload);
 }
 
 async function deleteActivity(activityId) {
-  const payload = await api(`/api/admin/activities/${activityId}`, {
-    method: 'DELETE'
-  });
-  state.activities = payload.data.activities;
-  state.students = payload.data.students;
-  state.registrations = payload.data.registrations;
-  render();
+  const payload = await api(`/api/admin/activities/${activityId}`, { method: 'DELETE' });
+  syncState(payload.data);
   showResult(payload);
 }
 
@@ -164,6 +177,14 @@ document.querySelector('#refreshButton').addEventListener('click', async () => {
   try {
     await refresh();
     showResult('数据已刷新，视图 v_activity_summary 已重新查询。');
+  } catch (error) {
+    showResult(error.message);
+  }
+});
+
+document.querySelector('#addStudentButton').addEventListener('click', async () => {
+  try {
+    await createStudent();
   } catch (error) {
     showResult(error.message);
   }
@@ -193,7 +214,7 @@ document.querySelector('#deleteButton').addEventListener('click', async () => {
   }
 });
 
-document.querySelector('.quick-actions').addEventListener('click', async event => {
+document.addEventListener('click', async event => {
   const action = event.target.dataset.demo;
   if (!action) return;
 
@@ -207,16 +228,6 @@ document.querySelector('.quick-actions').addEventListener('click', async event =
     if (action === 'triggerDuplicate') {
       await submitRegistration(2, 1);
     }
-  } catch (error) {
-    showResult(error.message);
-  }
-});
-
-document.querySelectorAll('.quick-actions')[1].addEventListener('click', async event => {
-  const action = event.target.dataset.demo;
-  if (!action) return;
-
-  try {
     if (action === 'procedureSuccess') {
       await finishActivity(4, 0);
     }
@@ -237,10 +248,7 @@ els.registrationList.addEventListener('click', async event => {
       method: 'POST',
       body: JSON.stringify({ registrationId: Number(registrationId) })
     });
-    state.activities = payload.data.activities;
-    state.students = payload.data.students;
-    state.registrations = payload.data.registrations;
-    render();
+    syncState(payload.data);
     showResult(payload);
   } catch (error) {
     showResult(error.message);
@@ -252,7 +260,7 @@ async function boot() {
     const health = await api('/api/health');
     els.dbStatus.textContent = `已连接 ${health.database_name}`;
     await refresh();
-    showResult('系统已启动。先看活动统计视图，再依次演示触发器、存储过程、事务删除。');
+    showResult('系统已启动。建议答辩时按“视图查询 -> 触发器添加 -> 存储过程更新 -> 事务删除”的顺序演示。');
   } catch (error) {
     els.dbStatus.textContent = '数据库连接失败';
     showResult(`启动失败：${error.message}\n请确认 MySQL 已启动，SQL 已导入，server/.env 中密码正确。`);

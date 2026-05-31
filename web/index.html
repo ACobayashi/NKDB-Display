@@ -7,92 +7,99 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <header class="hero">
+    <header class="hero" id="top">
       <nav class="nav-bar">
-        <a class="brand" href="#top" aria-label="南开大学校园活动系统">
-          <img src="/assets/nku-logo-white.png" alt="南开大学" />
-        </a>
-        <div class="nav-actions">
-          <a href="#summary">统计视图</a>
-          <a href="#operations">数据库操作</a>
-          <a href="#records">报名记录</a>
-          <div class="db-status" id="dbStatus">数据库连接检测中</div>
+        <img src="/assets/nku-logo-white.png" alt="南开大学" />
+        <div class="nav-links">
+          <a href="#flow">演示顺序</a>
+          <a href="#data">数据维护</a>
+          <a href="#summary">视图查询</a>
+          <a href="#operations">评分功能</a>
+          <span id="dbStatus">数据库连接检测中</span>
         </div>
       </nav>
 
-      <section class="hero-content" id="top">
-        <div class="hero-copy">
-          <p class="eyebrow">Nankai University · Database Engineering</p>
-          <h1>校园活动报名与积分管理系统</h1>
-          <p class="hero-subtitle">面向课程答辩的数据库信息管理系统演示：活动查询、报名校验、积分结算与事务删除。</p>
-          <div class="hero-actions">
-            <a class="primary-link" href="#operations">开始演示</a>
-            <a class="ghost-link" href="#summary">查看视图结果</a>
-          </div>
+      <section class="hero-main">
+        <p class="eyebrow">Nankai University · Database Engineering</p>
+        <h1>校园活动报名与积分管理系统</h1>
+        <p>一个 B/S 架构的 MySQL 信息管理系统，用于演示活动查询、报名添加、积分结算和活动删除。</p>
+        <div class="hero-actions">
+          <a href="#flow" class="gold-button">按顺序演示</a>
+          <a href="#data" class="outline-button">先添加成员</a>
         </div>
-
-        <aside class="hero-brief" aria-label="评分点概览">
-          <img src="/assets/nku-motto-purple.png" alt="允公允能 日新月异" />
-          <div class="brief-grid">
-            <span>事务删除</span>
-            <span>触发器添加</span>
-            <span>存储过程更新</span>
-            <span>视图查询</span>
-          </div>
-        </aside>
       </section>
     </header>
 
-    <main class="layout">
-      <section class="stats-strip" aria-label="系统概览">
-        <div class="metric">
-          <span>活动总数</span>
-          <strong id="metricActivities">-</strong>
+    <main class="page">
+      <section class="metrics" aria-label="系统概览">
+        <article><span>活动总数</span><strong id="metricActivities">-</strong></article>
+        <article><span>开放报名</span><strong id="metricOpen">-</strong></article>
+        <article><span>报名记录</span><strong id="metricRegistrations">-</strong></article>
+        <article><span>学生积分合计</span><strong id="metricPoints">-</strong></article>
+      </section>
+
+      <section class="panel" id="flow">
+        <div class="section-title">
+          <p class="eyebrow">Presentation Flow</p>
+          <h2>答辩展示顺序</h2>
         </div>
-        <div class="metric">
-          <span>开放报名</span>
-          <strong id="metricOpen">-</strong>
-        </div>
-        <div class="metric">
-          <span>报名记录</span>
-          <strong id="metricRegistrations">-</strong>
-        </div>
-        <div class="metric">
-          <span>学生积分</span>
-          <strong id="metricPoints">-</strong>
+        <div class="flow-grid">
+          <article>
+            <b>1</b>
+            <h3>视图查询</h3>
+            <p>展示活动统计表，说明数据来自 `v_activity_summary`。</p>
+          </article>
+          <article>
+            <b>2</b>
+            <h3>触发器添加</h3>
+            <p>先报名成功，再演示满员或重复报名失败。</p>
+          </article>
+          <article>
+            <b>3</b>
+            <h3>存储过程更新</h3>
+            <p>结算活动 4，观察学生积分和活动状态变化。</p>
+          </article>
+          <article>
+            <b>4</b>
+            <h3>事务删除</h3>
+            <p>删除活动 2，说明通知、报名和活动一起提交或回滚。</p>
+          </article>
         </div>
       </section>
 
-      <section class="score-map" aria-label="报告评分点">
-        <article>
-          <span>15 分</span>
-          <strong>视图查询</strong>
-          <p>v_activity_summary</p>
+      <section class="two-column" id="data">
+        <article class="panel">
+          <div class="section-title">
+            <p class="eyebrow">Data Maintenance</p>
+            <h2>新增学生成员</h2>
+          </div>
+          <div class="form-grid">
+            <label>学号<input id="newStudentNo" value="20260005" /></label>
+            <label>姓名<input id="newStudentName" value="王南开" /></label>
+            <label>专业<input id="newStudentMajor" value="计算机科学与技术" /></label>
+            <label>班级<input id="newStudentClass" value="计科一班" /></label>
+            <label>初始积分<input id="newStudentPoints" type="number" min="0" step="1" value="0" /></label>
+          </div>
+          <button id="addStudentButton" class="primary-button">添加成员</button>
+          <p class="hint">这是系统的数据维护功能；报告评分中的“添加操作”仍然使用报名表触发器控制。</p>
         </article>
-        <article>
-          <span>20 分</span>
-          <strong>触发器添加</strong>
-          <p>trg_before_registration_insert</p>
-        </article>
-        <article>
-          <span>18 分</span>
-          <strong>存储过程更新</strong>
-          <p>sp_finish_activity</p>
-        </article>
-        <article>
-          <span>13 分</span>
-          <strong>事务删除</strong>
-          <p>BEGIN / COMMIT / ROLLBACK</p>
+
+        <article class="panel">
+          <div class="section-title">
+            <p class="eyebrow">Students</p>
+            <h2>学生成员与积分</h2>
+          </div>
+          <div id="studentCards" class="student-list"></div>
         </article>
       </section>
 
-      <section class="panel summary-panel" id="summary">
-        <div class="section-heading">
-          <div>
+      <section class="panel" id="summary">
+        <div class="section-row">
+          <div class="section-title">
             <p class="eyebrow">View Query</p>
             <h2>活动统计视图</h2>
           </div>
-          <button id="refreshButton" class="secondary-button">刷新数据</button>
+          <button id="refreshButton" class="secondary-button">刷新视图</button>
         </div>
         <div class="table-wrap">
           <table>
@@ -115,24 +122,14 @@
         </div>
       </section>
 
-      <section class="operation-grid" id="operations">
-        <article class="operation-card accent-trigger">
-          <div class="card-head">
-            <div>
-              <p class="eyebrow">Trigger Insert</p>
-              <h2>触发器控制报名</h2>
-            </div>
-            <span class="operation-index">01</span>
-          </div>
+      <section class="operation-layout" id="operations">
+        <article class="panel feature-card">
+          <span class="step">01</span>
+          <p class="eyebrow">Trigger Insert</p>
+          <h2>触发器控制报名</h2>
           <div class="form-grid">
-            <label>
-              学生
-              <select id="studentSelect"></select>
-            </label>
-            <label>
-              活动
-              <select id="registerActivitySelect"></select>
-            </label>
+            <label>学生<select id="studentSelect"></select></label>
+            <label>活动<select id="registerActivitySelect"></select></label>
           </div>
           <button id="registerButton" class="primary-button">提交报名</button>
           <div class="quick-actions">
@@ -140,91 +137,45 @@
             <button data-demo="triggerFull">满员失败</button>
             <button data-demo="triggerDuplicate">重复报名失败</button>
           </div>
-          <pre class="code-note">INSERT INTO registrations (activity_id, user_id) VALUES (?, ?);
--- BEFORE INSERT 触发器检查用户身份、截止时间、重复报名、容量限制</pre>
         </article>
 
-        <article class="operation-card accent-procedure">
-          <div class="card-head">
-            <div>
-              <p class="eyebrow">Procedure Update</p>
-              <h2>存储过程积分结算</h2>
-            </div>
-            <span class="operation-index">02</span>
-          </div>
+        <article class="panel feature-card">
+          <span class="step">02</span>
+          <p class="eyebrow">Procedure Update</p>
+          <h2>存储过程积分结算</h2>
           <div class="form-grid">
-            <label>
-              结算活动
-              <select id="finishActivitySelect"></select>
-            </label>
-            <label>
-              额外积分
-              <input id="extraPointsInput" type="number" min="0" step="1" value="0" />
-            </label>
+            <label>结算活动<select id="finishActivitySelect"></select></label>
+            <label>额外积分<input id="extraPointsInput" type="number" min="0" step="1" value="0" /></label>
           </div>
           <button id="finishButton" class="primary-button">执行结算</button>
           <div class="quick-actions">
             <button data-demo="procedureSuccess">成功结算活动 4</button>
             <button data-demo="procedureFail">重复结算失败</button>
           </div>
-          <pre class="code-note">CALL sp_finish_activity(?, ?);
--- 存储过程批量更新 users、registrations、activities</pre>
         </article>
 
-        <article class="operation-card accent-delete">
-          <div class="card-head">
-            <div>
-              <p class="eyebrow">Transaction Delete</p>
-              <h2>事务删除活动</h2>
-            </div>
-            <span class="operation-index">03</span>
-          </div>
-          <label>
-            删除活动
-            <select id="deleteActivitySelect"></select>
-          </label>
+        <article class="panel feature-card">
+          <span class="step">03</span>
+          <p class="eyebrow">Transaction Delete</p>
+          <h2>事务删除活动</h2>
+          <label>删除活动<select id="deleteActivitySelect"></select></label>
           <button id="deleteButton" class="danger-button">事务删除</button>
-          <pre class="code-note">BEGIN;
-DELETE FROM activity_notices WHERE activity_id = ?;
-DELETE FROM registrations WHERE activity_id = ?;
-DELETE FROM activities WHERE activity_id = ?;
-COMMIT;
--- 失败时 ROLLBACK</pre>
+          <p class="hint">后端依次删除通知、报名记录和活动主体；任一步失败都会 `ROLLBACK`。</p>
         </article>
 
-        <article class="operation-card accent-result">
-          <div class="card-head">
-            <div>
-              <p class="eyebrow">Operation Result</p>
-              <h2>演示结果</h2>
-            </div>
-            <span class="operation-index">04</span>
-          </div>
+        <article class="panel result-card">
+          <p class="eyebrow">Operation Result</p>
+          <h2>演示结果</h2>
           <pre id="resultBox">等待操作。</pre>
         </article>
       </section>
 
-      <section class="records-grid" id="records">
-        <article class="panel">
-          <div class="section-heading compact">
-            <div>
-              <p class="eyebrow">Students</p>
-              <h2>学生积分</h2>
-            </div>
-          </div>
-          <div id="studentCards" class="student-list"></div>
-        </article>
-
-        <article class="panel">
-          <div class="section-heading compact">
-            <div>
-              <p class="eyebrow">Registrations</p>
-              <h2>报名记录</h2>
-            </div>
-            <span class="muted">registered 记录可签到</span>
-          </div>
-          <div id="registrationList" class="registration-list"></div>
-        </article>
+      <section class="panel" id="records">
+        <div class="section-title">
+          <p class="eyebrow">Registrations</p>
+          <h2>报名记录</h2>
+        </div>
+        <div id="registrationList" class="registration-list"></div>
       </section>
     </main>
 

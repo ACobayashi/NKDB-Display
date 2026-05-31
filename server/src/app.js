@@ -57,6 +57,17 @@ function parseId(value, fieldName) {
   return parsed;
 }
 
+function requireText(value, fieldName, maxLength) {
+  const text = String(value || '').trim();
+  if (!text) {
+    throw new Error(`${fieldName} 不能为空`);
+  }
+  if (text.length > maxLength) {
+    throw new Error(`${fieldName} 不能超过 ${maxLength} 个字符`);
+  }
+  return text;
+}
+
 async function getDashboardData() {
   const [activities] = await pool.query('SELECT * FROM v_activity_summary ORDER BY activity_id');
   const [students] = await pool.query(
@@ -97,6 +108,30 @@ async function handleApi(req, res, url) {
     if (req.method === 'GET' && url.pathname === '/api/activities') {
       const [rows] = await pool.query('SELECT * FROM v_activity_summary ORDER BY activity_id');
       sendJson(res, 200, { ok: true, data: rows });
+      return;
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/admin/students') {
+      const body = await readBody(req);
+      const studentNo = requireText(body.studentNo, '学号', 20);
+      const name = requireText(body.name, '姓名', 50);
+      const major = requireText(body.major || '未填写专业', '专业', 80);
+      const className = requireText(body.className || '未填写班级', '班级', 80);
+      const points = Number(body.points || 0);
+      if (!Number.isInteger(points) || points < 0) {
+        throw new Error('初始积分必须是非负整数');
+      }
+
+      const [result] = await pool.query(
+        "INSERT INTO users (student_no, name, role, major, class_name, points) VALUES (?, ?, 'student', ?, ?, ?)",
+        [studentNo, name, major, className, points]
+      );
+      sendJson(res, 201, {
+        ok: true,
+        message: '学生成员添加成功：已写入 users 表',
+        userId: result.insertId,
+        data: await getDashboardData()
+      });
       return;
     }
 
