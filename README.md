@@ -105,15 +105,3 @@ campus-activity-db/
     ├── styles.css
     └── app.js
 ```
-
-## 六、报告截图建议
-
-- 页面截图 1：系统首页/活动统计视图
-- 页面截图 2：触发器成功报名
-- 页面截图 3：触发器失败提示
-- 页面截图 4：存储过程结算或事务删除结果
-- 代码截图：`server/src/app.js` 中事务删除代码
-- 代码截图：`database/03_triggers.sql` 中触发器代码
-- 代码截图：`database/04_procedures.sql` 中存储过程代码
-- 代码截图：`database/05_views.sql` 中视图代码
-- 关系图截图：MySQL Workbench 的 EER Diagram
