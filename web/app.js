@@ -46,7 +46,22 @@ function option(label, value) {
 }
 
 function showResult(payload) {
-  els.resultBox.textContent = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
+  if (typeof payload === 'string') {
+    els.resultBox.textContent = payload;
+    return;
+  }
+
+  const lines = [];
+  if (payload.message) lines.push(payload.message);
+  if (payload.userId) lines.push(`学生编号：${payload.userId}`);
+  if (payload.registrationId) lines.push(`报名编号：${payload.registrationId}`);
+  if (payload.deleted) {
+    lines.push(
+      `清理明细：活动 ${payload.deleted.activities} 条，报名 ${payload.deleted.registrations} 条，通知 ${payload.deleted.activity_notices} 条`
+    );
+  }
+
+  els.resultBox.textContent = lines.length ? lines.join('\n') : JSON.stringify(payload, null, 2);
 }
 
 function syncState(data) {
@@ -176,7 +191,7 @@ async function deleteActivity(activityId) {
 document.querySelector('#refreshButton').addEventListener('click', async () => {
   try {
     await refresh();
-    showResult('数据已刷新，视图 v_activity_summary 已重新查询。');
+    showResult('数据已刷新。');
   } catch (error) {
     showResult(error.message);
   }
@@ -214,31 +229,6 @@ document.querySelector('#deleteButton').addEventListener('click', async () => {
   }
 });
 
-document.addEventListener('click', async event => {
-  const action = event.target.dataset.demo;
-  if (!action) return;
-
-  try {
-    if (action === 'triggerSuccess') {
-      await submitRegistration(5, 1);
-    }
-    if (action === 'triggerFull') {
-      await submitRegistration(5, 3);
-    }
-    if (action === 'triggerDuplicate') {
-      await submitRegistration(2, 1);
-    }
-    if (action === 'procedureSuccess') {
-      await finishActivity(4, 0);
-    }
-    if (action === 'procedureFail') {
-      await finishActivity(4, 0);
-    }
-  } catch (error) {
-    showResult(error.message);
-  }
-});
-
 els.registrationList.addEventListener('click', async event => {
   const registrationId = event.target.dataset.checkIn;
   if (!registrationId) return;
@@ -260,7 +250,7 @@ async function boot() {
     const health = await api('/api/health');
     els.dbStatus.textContent = `已连接 ${health.database_name}`;
     await refresh();
-    showResult('系统已启动。建议答辩时按“视图查询 -> 触发器添加 -> 存储过程更新 -> 事务删除”的顺序演示。');
+    showResult('系统已启动，可以进行学生维护、报名办理、签到管理、积分结算和活动数据维护。');
   } catch (error) {
     els.dbStatus.textContent = '数据库连接失败';
     showResult(`启动失败：${error.message}\n请确认 MySQL 已启动，SQL 已导入，server/.env 中密码正确。`);

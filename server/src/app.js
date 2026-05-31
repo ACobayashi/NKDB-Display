@@ -146,7 +146,7 @@ async function handleApi(req, res, url) {
       );
       sendJson(res, 201, {
         ok: true,
-        message: '报名成功：该添加操作已通过 MySQL 触发器校验',
+        message: '报名成功，系统已完成活动状态、名额和重复报名校验。',
         registrationId: result.insertId,
         data: await getDashboardData()
       });
@@ -165,7 +165,7 @@ async function handleApi(req, res, url) {
       }
       sendJson(res, 200, {
         ok: true,
-        message: '签到成功：该记录可参与存储过程结算',
+        message: '签到成功，该记录可参与活动积分结算。',
         data: await getDashboardData()
       });
       return;
@@ -182,7 +182,7 @@ async function handleApi(req, res, url) {
       await pool.query('CALL sp_finish_activity(?, ?)', [activityId, extraPoints]);
       sendJson(res, 200, {
         ok: true,
-        message: '结算成功：存储过程已批量更新学生积分、报名状态和活动状态',
+        message: '结算成功，已更新学生积分、报名状态和活动状态。',
         data: await getDashboardData()
       });
       return;
@@ -209,13 +209,13 @@ async function handleApi(req, res, url) {
         );
 
         if (activityResult.affectedRows === 0) {
-          throw new Error('删除失败：活动不存在，事务已回滚');
+          throw new Error('删除失败：活动不存在，数据未发生变化。');
         }
 
         await connection.query('COMMIT');
         sendJson(res, 200, {
           ok: true,
-          message: '事务删除成功：通知、报名记录和活动主体已一起删除',
+          message: '删除成功，相关通知和报名记录已同步清理。',
           deleted: {
             activity_notices: noticeResult.affectedRows,
             registrations: registrationResult.affectedRows,
@@ -271,5 +271,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`Campus Activity DB demo is running at http://localhost:${PORT}`);
+  console.log(`Campus Activity DB app is running at http://localhost:${PORT}`);
 });

@@ -166,7 +166,7 @@ button {
 }
 
 .metrics,
-.flow-grid,
+.module-grid,
 .two-column,
 .operation-layout {
   display: grid;
@@ -238,11 +238,11 @@ h3 {
   font-size: 17px;
 }
 
-.flow-grid {
+.module-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.flow-grid article {
+.module-grid article {
   min-height: 150px;
   border-radius: 10px;
   border: 1px solid #eadfec;
@@ -250,8 +250,7 @@ h3 {
   padding: 18px;
 }
 
-.flow-grid b,
-.step {
+.module-grid b {
   width: 38px;
   height: 38px;
   display: inline-flex;
@@ -263,7 +262,7 @@ h3 {
   font-weight: 950;
 }
 
-.flow-grid p,
+.module-grid p,
 .hint {
   margin: 10px 0 0;
   color: var(--muted);
@@ -409,20 +408,6 @@ tr:last-child td {
   background: linear-gradient(90deg, var(--purple), var(--red), var(--gold));
 }
 
-.feature-card .step {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-}
-
-.quick-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.quick-actions button,
 .registration-item button {
   min-height: 34px;
   border: 1px solid #e7dcec;
@@ -488,7 +473,7 @@ tr:last-child td {
 
 @media (max-width: 980px) {
   .metrics,
-  .flow-grid,
+  .module-grid,
   .two-column,
   .operation-layout {
     grid-template-columns: 1fr;
