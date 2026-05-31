@@ -350,6 +350,17 @@ select:focus {
   padding: 12px;
 }
 
+.student-main {
+  min-width: 0;
+}
+
+.student-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
 .points {
   color: var(--red);
   font-size: 18px;
@@ -408,13 +419,20 @@ tr:last-child td {
   background: linear-gradient(90deg, var(--purple), var(--red), var(--gold));
 }
 
-.registration-item button {
+.registration-item button,
+.small-danger-button {
   min-height: 34px;
   border: 1px solid #e7dcec;
   background: #fff;
   color: #51445d;
   padding: 0 11px;
   font-size: 13px;
+}
+
+.small-danger-button {
+  border-color: #f0c6c0;
+  color: #a61f18;
+  background: #fff7f5;
 }
 
 .result-card {
@@ -493,6 +511,11 @@ tr:last-child td {
 
   .nav-links {
     justify-content: flex-start;
+  }
+
+  .student-actions {
+    width: 100%;
+    justify-content: space-between;
   }
 }
 

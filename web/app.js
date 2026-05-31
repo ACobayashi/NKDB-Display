@@ -56,9 +56,13 @@ function showResult(payload) {
   if (payload.userId) lines.push(`学生编号：${payload.userId}`);
   if (payload.registrationId) lines.push(`报名编号：${payload.registrationId}`);
   if (payload.deleted) {
-    lines.push(
-      `清理明细：活动 ${payload.deleted.activities} 条，报名 ${payload.deleted.registrations} 条，通知 ${payload.deleted.activity_notices} 条`
-    );
+    if (payload.deleted.users !== undefined) {
+      lines.push(`清理明细：学生 ${payload.deleted.users} 条，报名 ${payload.deleted.student_registrations} 条`);
+    } else {
+      lines.push(
+        `清理明细：活动 ${payload.deleted.activities} 条，报名 ${payload.deleted.registrations} 条，通知 ${payload.deleted.activity_notices} 条`
+      );
+    }
   }
 
   els.resultBox.textContent = lines.length ? lines.join('\n') : JSON.stringify(payload, null, 2);
@@ -125,11 +129,14 @@ function render() {
 
   els.studentCards.innerHTML = state.students.map(student => `
     <div class="student-card">
-      <div>
+      <div class="student-main">
         <strong>${student.name}</strong>
         <div class="muted">${student.student_no} / ${student.major} / ${student.class_name}</div>
       </div>
-      <div class="points">${student.points} 分</div>
+      <div class="student-actions">
+        <div class="points">${student.points} 分</div>
+        <button class="small-danger-button" data-delete-student="${student.user_id}">删除</button>
+      </div>
     </div>
   `).join('');
 
@@ -188,6 +195,12 @@ async function deleteActivity(activityId) {
   showResult(payload);
 }
 
+async function deleteStudent(studentId) {
+  const payload = await api(`/api/admin/students/${studentId}`, { method: 'DELETE' });
+  syncState(payload.data);
+  showResult(payload);
+}
+
 document.querySelector('#refreshButton').addEventListener('click', async () => {
   try {
     await refresh();
@@ -224,6 +237,21 @@ document.querySelector('#finishButton').addEventListener('click', async () => {
 document.querySelector('#deleteButton').addEventListener('click', async () => {
   try {
     await deleteActivity(Number(els.deleteActivitySelect.value));
+  } catch (error) {
+    showResult(error.message);
+  }
+});
+
+els.studentCards.addEventListener('click', async event => {
+  const studentId = event.target.dataset.deleteStudent;
+  if (!studentId) return;
+
+  if (!confirm('确定删除这名学生成员及其报名记录吗？')) {
+    return;
+  }
+
+  try {
+    await deleteStudent(Number(studentId));
   } catch (error) {
     showResult(error.message);
   }

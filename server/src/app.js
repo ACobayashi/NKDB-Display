@@ -135,6 +135,49 @@ async function handleApi(req, res, url) {
       return;
     }
 
+    const deleteStudentMatch = url.pathname.match(/^\/api\/admin\/students\/(\d+)$/);
+    if (req.method === 'DELETE' && deleteStudentMatch) {
+      const studentId = parseId(deleteStudentMatch[1], 'studentId');
+      const connection = await pool.getConnection();
+
+      try {
+        await connection.query('BEGIN');
+        const [studentRows] = await connection.query(
+          "SELECT user_id, name FROM users WHERE user_id = ? AND role = 'student' FOR UPDATE",
+          [studentId]
+        );
+        if (studentRows.length === 0) {
+          throw new Error('删除失败：学生成员不存在。');
+        }
+
+        const [registrationResult] = await connection.query(
+          'DELETE FROM registrations WHERE user_id = ?',
+          [studentId]
+        );
+        const [studentResult] = await connection.query(
+          "DELETE FROM users WHERE user_id = ? AND role = 'student'",
+          [studentId]
+        );
+
+        await connection.query('COMMIT');
+        sendJson(res, 200, {
+          ok: true,
+          message: `学生成员“${studentRows[0].name}”已删除，相关报名记录已同步清理。`,
+          deleted: {
+            student_registrations: registrationResult.affectedRows,
+            users: studentResult.affectedRows
+          },
+          data: await getDashboardData()
+        });
+      } catch (error) {
+        await connection.query('ROLLBACK');
+        throw error;
+      } finally {
+        connection.release();
+      }
+      return;
+    }
+
     if (req.method === 'POST' && url.pathname === '/api/registrations') {
       const body = await readBody(req);
       const studentId = parseId(body.studentId, 'studentId');
