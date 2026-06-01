@@ -9,7 +9,7 @@ SELECT
   ac.category_name,
   c.club_name,
   v.venue_name,
-  CONCAT(v.building, ' ', v.room) AS venue_location,
+  v.venue_name AS venue_location,
   a.start_time,
   a.end_time,
   a.registration_deadline,

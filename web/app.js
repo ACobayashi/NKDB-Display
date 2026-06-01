@@ -151,7 +151,7 @@ function render() {
     option(club.club_name, club.club_id)
   ).join('');
   els.newActivityVenue.innerHTML = state.venues.map(venue =>
-    option(`${venue.building}${venue.room} · ${venue.venue_name}`, venue.venue_id)
+    option(venue.venue_name, venue.venue_id)
   ).join('');
 
   els.studentCards.innerHTML = state.students.map(student => `

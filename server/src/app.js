@@ -56,12 +56,22 @@ const presetClubs = [
 const presetClubNames = presetClubs.map(club => club[0]);
 
 const presetVenues = [
-  ['主楼报告厅', '八里台校区主楼', '201', 120],
-  ['综合实验室', '津南校区综合实验楼', 'B305', 45],
-  ['大学生活动中心', '大学生活动中心', '101', 80],
-  ['图书馆报告厅', '图书馆', '一层报告厅', 100],
-  ['体育中心多功能厅', '体育中心', '多功能厅', 150]
+  ['公共教学楼A区', '公共教学楼', 'A区', 120],
+  ['公共教学楼B区', '公共教学楼', 'B区', 120],
+  ['公共教学楼C区', '公共教学楼', 'C区', 120],
+  ['公共教学楼D区', '公共教学楼', 'D区', 120],
+  ['综合实验楼A区', '综合实验楼', 'A区', 80],
+  ['综合实验楼B区', '综合实验楼', 'B区', 80],
+  ['综合实验楼C区', '综合实验楼', 'C区', 80],
+  ['综合实验楼D区', '综合实验楼', 'D区', 80],
+  ['学院楼', '学院楼', '公共教室', 100],
+  ['大通学生活动中心大报告厅', '大通学生活动中心', '大报告厅', 220],
+  ['大通学生活动中心小报告厅', '大通学生活动中心', '小报告厅', 100],
+  ['体育馆', '体育馆', '主馆', 500],
+  ['图书馆二楼报告厅', '图书馆', '二楼报告厅', 120],
+  ['业务西楼报告厅', '业务西楼', '报告厅', 100]
 ];
+const presetVenueNames = presetVenues.map(venue => venue[0]);
 
 const contentTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -189,9 +199,12 @@ async function getDashboardData() {
   const clubs = clubRows
     .filter(club => presetClubNames.includes(club.club_name))
     .sort((left, right) => presetClubNames.indexOf(left.club_name) - presetClubNames.indexOf(right.club_name));
-  const [venues] = await pool.query(
+  const [venueRows] = await pool.query(
     "SELECT venue_id, venue_name, building, room, capacity FROM venues ORDER BY venue_id"
   );
+  const venues = venueRows
+    .filter(venue => presetVenueNames.includes(venue.venue_name))
+    .sort((left, right) => presetVenueNames.indexOf(left.venue_name) - presetVenueNames.indexOf(right.venue_name));
   const [registrations] = await pool.query(`
     SELECT
       r.registration_id,
