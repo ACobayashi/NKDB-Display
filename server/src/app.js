@@ -6,6 +6,30 @@ const { pool } = require('./db');
 
 const PORT = Number(process.env.PORT || 3000);
 const WEB_DIR = path.resolve(__dirname, '..', '..', 'web');
+let presetsReady = false;
+
+const presetCategories = [
+  ['学术讲座', '学术讲座、经验分享、职业规划等'],
+  ['志愿服务', '校内外公益和服务类活动'],
+  ['竞赛活动', '程序设计、创新创业、数据分析等竞赛'],
+  ['社团沙龙', '社团招新、沙龙、工作坊等'],
+  ['体育美育', '体育锻炼、美育实践和校园文化活动']
+];
+
+const presetClubs = [
+  ['学生会', '王老师', '022-10000001', '负责校园讲座、竞赛与学生活动组织'],
+  ['青年志愿者协会', '赵老师', '022-10000002', '组织校内外志愿服务活动'],
+  ['数据科学社', '孙老师', '022-10000003', '面向数据分析、AI 与数据库方向的学生社团'],
+  ['创新创业协会', '李老师', '022-10000004', '组织创新创业训练和项目交流活动']
+];
+
+const presetVenues = [
+  ['主楼报告厅', '八里台校区主楼', '201', 120],
+  ['综合实验室', '津南校区综合实验楼', 'B305', 45],
+  ['大学生活动中心', '大学生活动中心', '101', 80],
+  ['图书馆报告厅', '图书馆', '一层报告厅', 100],
+  ['体育中心多功能厅', '体育中心', '多功能厅', 150]
+];
 
 const contentTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -84,7 +108,42 @@ function dateTimeMillis(value) {
   return new Date(value.replace(' ', 'T')).getTime();
 }
 
+async function ensurePresetReferenceData() {
+  if (presetsReady) {
+    return;
+  }
+
+  await pool.query(
+    "INSERT IGNORE INTO users (student_no, name, role, major, class_name, points) VALUES ('ADMIN001', '系统管理员', 'admin', '数据库工程', '管理员', 0)"
+  );
+
+  for (const category of presetCategories) {
+    await pool.query(
+      'INSERT IGNORE INTO activity_categories (category_name, description) VALUES (?, ?)',
+      category
+    );
+  }
+
+  for (const club of presetClubs) {
+    await pool.query(
+      'INSERT IGNORE INTO clubs (club_name, contact_name, contact_phone, description) VALUES (?, ?, ?, ?)',
+      club
+    );
+  }
+
+  for (const venue of presetVenues) {
+    await pool.query(
+      'INSERT IGNORE INTO venues (venue_name, building, room, capacity) VALUES (?, ?, ?, ?)',
+      venue
+    );
+  }
+
+  presetsReady = true;
+}
+
 async function getDashboardData() {
+  await ensurePresetReferenceData();
+
   const [activities] = await pool.query('SELECT * FROM v_activity_summary ORDER BY activity_id');
   const [students] = await pool.query(
     "SELECT user_id, student_no, name, major, class_name, points FROM users WHERE role = 'student' ORDER BY user_id"
@@ -131,12 +190,14 @@ async function handleApi(req, res, url) {
     }
 
     if (req.method === 'GET' && url.pathname === '/api/activities') {
+      await ensurePresetReferenceData();
       const [rows] = await pool.query('SELECT * FROM v_activity_summary ORDER BY activity_id');
       sendJson(res, 200, { ok: true, data: rows });
       return;
     }
 
     if (req.method === 'POST' && url.pathname === '/api/admin/activities') {
+      await ensurePresetReferenceData();
       const body = await readBody(req);
       const title = requireText(body.title, '活动名称', 120);
       const description = String(body.description || '').trim();
@@ -162,14 +223,30 @@ async function handleApi(req, res, url) {
         throw new Error('报名截止时间不能晚于活动开始时间');
       }
 
+      const [creatorRows] = await pool.query(
+        "SELECT user_id FROM users WHERE role = 'admin' ORDER BY user_id LIMIT 1"
+      );
+
       const [result] = await pool.query(
         `
           INSERT INTO activities
             (title, description, category_id, club_id, venue_id, start_time, end_time, registration_deadline, capacity, points, status, created_by)
           VALUES
-            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', 1)
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?)
         `,
-        [title, description, categoryId, clubId, venueId, startTime, endTime, registrationDeadline, capacity, points]
+        [
+          title,
+          description,
+          categoryId,
+          clubId,
+          venueId,
+          startTime,
+          endTime,
+          registrationDeadline,
+          capacity,
+          points,
+          creatorRows[0].user_id
+        ]
       );
       sendJson(res, 201, {
         ok: true,
