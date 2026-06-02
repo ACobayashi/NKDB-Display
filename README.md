@@ -91,8 +91,7 @@ campus-activity-db/
 │   ├── 02_seed.sql
 │   ├── 03_triggers.sql
 │   ├── 04_procedures.sql
-│   ├── 05_views.sql
-│   └── 06_demo_queries.sql
+│   └── 05_views.sql
 ├── report/
 │   ├── REPORT_DRAFT.md
 │   ├── 数据库工程作业报告_填写稿.docx

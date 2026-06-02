@@ -1,7 +1,5 @@
 # 数据库导入顺序
 
-在 MySQL Workbench 中按顺序执行：
-
 1. `01_schema.sql`
    - 创建数据库 `campus_activity_db`
    - 创建 7 张数据表、主键、外键和索引
@@ -18,7 +16,4 @@
 5. `05_views.sql`
    - 创建活动统计视图 `v_activity_summary`
 
-6. `06_demo_queries.sql`
-   - 可选，只用于单独在 Workbench 里测试成功/失败案例
-
-注意：`06_demo_queries.sql` 会修改演示数据，正式演示前如果数据乱了，可以从 `01_schema.sql` 重新按顺序导入。
+注意：导入时只需要执行以上 5 个 SQL 文件。若演示过程中数据被改乱，可以从 `01_schema.sql` 重新按顺序导入。
