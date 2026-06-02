@@ -2,6 +2,7 @@ const state = {
   activities: [],
   students: [],
   registrations: [],
+  notices: [],
   categories: [],
   clubs: [],
   venues: []
@@ -16,6 +17,7 @@ const els = {
   deleteActivitySelect: document.querySelector('#deleteActivitySelect'),
   studentCards: document.querySelector('#studentCards'),
   registrationList: document.querySelector('#registrationList'),
+  noticeList: document.querySelector('#noticeList'),
   resultBox: document.querySelector('#resultBox'),
   extraPointsInput: document.querySelector('#extraPointsInput'),
   metricActivities: document.querySelector('#metricActivities'),
@@ -86,6 +88,7 @@ function syncState(data) {
   state.activities = data.activities || [];
   state.students = data.students || [];
   state.registrations = data.registrations || [];
+  state.notices = data.notices || [];
   state.categories = data.categories || [];
   state.clubs = data.clubs || [];
   state.venues = data.venues || [];
@@ -186,6 +189,19 @@ function render() {
       }
     </div>
   `).join('');
+
+  els.noticeList.innerHTML = state.notices.length
+    ? state.notices.map(notice => `
+        <article class="notice-item">
+          <div class="notice-heading">
+            <strong>${notice.title}</strong>
+            <span>${formatDate(notice.published_at)}</span>
+          </div>
+          <div class="muted">#${notice.notice_id} / ${notice.activity_title}</div>
+          <p>${notice.content}</p>
+        </article>
+      `).join('')
+    : '<p class="muted">暂无活动通知。</p>';
 }
 
 async function createStudent() {

@@ -220,8 +220,20 @@ async function getDashboardData() {
     JOIN users AS u ON r.user_id = u.user_id
     ORDER BY r.registration_id
   `);
+  const [notices] = await pool.query(`
+    SELECT
+      n.notice_id,
+      n.activity_id,
+      a.title AS activity_title,
+      n.title,
+      n.content,
+      n.published_at
+    FROM activity_notices AS n
+    JOIN activities AS a ON n.activity_id = a.activity_id
+    ORDER BY n.published_at DESC, n.notice_id DESC
+  `);
 
-  return { activities, students, registrations, categories, clubs, venues };
+  return { activities, students, registrations, notices, categories, clubs, venues };
 }
 
 async function handleApi(req, res, url) {

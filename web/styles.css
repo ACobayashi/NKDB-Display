@@ -347,13 +347,15 @@ textarea {
 }
 
 .student-list,
-.registration-list {
+.registration-list,
+.notice-list {
   display: grid;
   gap: 10px;
 }
 
 .student-card,
-.registration-item {
+.registration-item,
+.notice-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -362,6 +364,30 @@ textarea {
   border-radius: 10px;
   background: #fff;
   padding: 12px;
+}
+
+.notice-item {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.notice-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.notice-heading span {
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.notice-item p {
+  margin: 7px 0 0;
+  color: var(--text);
+  line-height: 1.65;
 }
 
 .student-main {
