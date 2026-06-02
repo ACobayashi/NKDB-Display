@@ -176,7 +176,12 @@ function render() {
       </div>
       ${
         registration.status === 'registered'
-          ? `<button data-check-in="${registration.registration_id}">签到</button>`
+          ? `
+              <div class="record-actions">
+                <button data-check-in="${registration.registration_id}">签到</button>
+                <button class="small-danger-button" data-cancel-registration="${registration.registration_id}">取消</button>
+              </div>
+            `
           : `<span class="badge ${registration.status}">${registration.status}</span>`
       }
     </div>
@@ -248,6 +253,12 @@ async function deleteStudent(studentId) {
   showResult(payload);
 }
 
+async function cancelRegistration(registrationId) {
+  const payload = await api(`/api/admin/registrations/${registrationId}`, { method: 'DELETE' });
+  syncState(payload.data);
+  showResult(payload);
+}
+
 document.querySelector('#refreshButton').addEventListener('click', async () => {
   try {
     await refresh();
@@ -313,16 +324,26 @@ els.studentCards.addEventListener('click', async event => {
 });
 
 els.registrationList.addEventListener('click', async event => {
-  const registrationId = event.target.dataset.checkIn;
-  if (!registrationId) return;
+  const checkInId = event.target.dataset.checkIn;
+  const cancelId = event.target.dataset.cancelRegistration;
 
   try {
-    const payload = await api('/api/admin/check-in', {
-      method: 'POST',
-      body: JSON.stringify({ registrationId: Number(registrationId) })
-    });
-    syncState(payload.data);
-    showResult(payload);
+    if (checkInId) {
+      const payload = await api('/api/admin/check-in', {
+        method: 'POST',
+        body: JSON.stringify({ registrationId: Number(checkInId) })
+      });
+      syncState(payload.data);
+      showResult(payload);
+    }
+
+    if (cancelId) {
+      if (!confirm('确定取消这条报名记录吗？')) {
+        return;
+      }
+
+      await cancelRegistration(Number(cancelId));
+    }
   } catch (error) {
     showResult(error.message);
   }

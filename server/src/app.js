@@ -469,6 +469,67 @@ async function handleApi(req, res, url) {
       return;
     }
 
+    const cancelRegistrationMatch = url.pathname.match(/^\/api\/admin\/registrations\/(\d+)$/);
+    if (req.method === 'DELETE' && cancelRegistrationMatch) {
+      const registrationId = parseId(cancelRegistrationMatch[1], 'registrationId');
+      const connection = await pool.getConnection();
+
+      try {
+        await connection.query('BEGIN');
+        const [registrationRows] = await connection.query(
+          `
+            SELECT
+              r.registration_id,
+              r.activity_id,
+              r.status,
+              u.name AS student_name,
+              a.title AS activity_title
+            FROM registrations AS r
+            JOIN users AS u ON r.user_id = u.user_id
+            JOIN activities AS a ON r.activity_id = a.activity_id
+            WHERE r.registration_id = ?
+            FOR UPDATE
+          `,
+          [registrationId]
+        );
+
+        if (registrationRows.length === 0) {
+          throw new Error('取消失败：报名记录不存在。');
+        }
+
+        const registration = registrationRows[0];
+        if (registration.status !== 'registered') {
+          throw new Error('取消失败：只能取消尚未签到的报名记录。');
+        }
+
+        await connection.query(
+          'DELETE FROM registrations WHERE registration_id = ?',
+          [registrationId]
+        );
+        await connection.query(
+          'INSERT INTO activity_notices (activity_id, title, content) VALUES (?, ?, ?)',
+          [
+            registration.activity_id,
+            '报名取消记录',
+            `${registration.student_name} 已取消报名：${registration.activity_title}`
+          ]
+        );
+
+        await connection.query('COMMIT');
+        sendJson(res, 200, {
+          ok: true,
+          message: `取消报名成功：${registration.student_name} 的报名记录已删除，并写入活动通知记录。`,
+          data: await getDashboardData()
+        });
+      } catch (error) {
+        await connection.query('ROLLBACK');
+        throw error;
+      } finally {
+        connection.release();
+      }
+      return;
+    }
+
     sendJson(res, 404, { ok: false, message: '接口不存在' });
   } catch (error) {
     sendError(res, 400, error);
