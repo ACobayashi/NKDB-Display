@@ -1,5 +1,6 @@
 USE campus_activity_db;
 
+-- users 演示数据：1 个管理员负责创建活动，4 个学生用于报名、签到和积分结算演示。
 INSERT INTO users (student_no, name, role, major, class_name, points) VALUES
   ('ADMIN001', '系统管理员', 'admin', '数据库工程', '管理员', 0),
   ('20260001', '陈一鸣', 'student', '计算机科学与技术', '计科一班', 10),
@@ -7,6 +8,7 @@ INSERT INTO users (student_no, name, role, major, class_name, points) VALUES
   ('20260003', '周予安', 'student', '信息管理与信息系统', '信管一班', 3),
   ('20260004', '林知夏', 'student', '数据科学与大数据技术', '数科一班', 12);
 
+-- clubs 演示数据：主办方预设为学生会、创新创业学会、各学院、就业指导部门和社团。
 INSERT INTO clubs (club_name, contact_name, contact_phone, description) VALUES
   ('学生会', '王老师', '022-10000001', '负责校园讲座、竞赛与学生活动组织'),
   ('创新创业学会', '李老师', '022-10000002', '组织创新创业训练和项目交流活动'),
@@ -43,6 +45,7 @@ INSERT INTO clubs (club_name, contact_name, contact_phone, description) VALUES
   ('就业指导发展部门', '就业指导中心', '022-10000033', '负责就业指导、职业规划与发展活动'),
   ('社团', '社团负责人', '022-10000034', '校内学生社团主办活动');
 
+-- venues 演示数据：前端发布活动时从这些预设场地中选择。
 INSERT INTO venues (venue_name, building, room, capacity) VALUES
   ('公共教学楼A区', '公共教学楼', 'A区', 120),
   ('公共教学楼B区', '公共教学楼', 'B区', 120),
@@ -59,6 +62,7 @@ INSERT INTO venues (venue_name, building, room, capacity) VALUES
   ('图书馆二楼报告厅', '图书馆', '二楼报告厅', 120),
   ('业务西楼报告厅', '业务西楼', '报告厅', 100);
 
+-- activity_categories 演示数据：活动分类预设，活动发布时通过 category_id 关联。
 INSERT INTO activity_categories (category_name, description) VALUES
   ('学术讲座', '学术讲座、经验分享、职业规划等'),
   ('志愿服务', '校内外公益和服务类活动'),
@@ -66,6 +70,8 @@ INSERT INTO activity_categories (category_name, description) VALUES
   ('社团沙龙', '社团招新、沙龙、工作坊等'),
   ('体育美育', '体育锻炼、美育实践和校园文化活动');
 
+-- activities 演示数据：活动主表数据，关联分类、主办方、场地和创建人。
+-- category_id、club_id、venue_id、created_by 都是外键，必须先插入被引用表。
 INSERT INTO activities
   (title, description, category_id, club_id, venue_id, start_time, end_time, registration_deadline, capacity, points, status, created_by)
 VALUES
@@ -74,6 +80,8 @@ VALUES
   ('AI 工具学习沙龙', '讨论 AI 工具在课程学习和工程实践中的合理使用方式，活动名额较少。', 4, 3, 2, '2030-06-08 19:00:00', '2030-06-08 21:00:00', '2030-06-07 23:59:00', 1, 2, 'open', 1),
   ('五月数据库实践工作坊', '回顾五月数据库实践工作坊的签到情况，并为参与学生结算活动积分。', 1, 1, 2, '2026-05-20 14:00:00', '2026-05-20 16:00:00', '2026-05-19 23:59:00', 30, 4, 'open', 1);
 
+-- registrations 演示数据：学生报名活动的关系记录，用于展示报名、签到和结算。
+-- activity_id 关联 activities，user_id 关联 users。
 INSERT INTO registrations (activity_id, user_id, status, registered_at, checked_in_at) VALUES
   (1, 2, 'registered', '2026-05-26 10:00:00', NULL),
   (1, 3, 'registered', '2026-05-26 10:20:00', NULL),
@@ -83,6 +91,8 @@ INSERT INTO registrations (activity_id, user_id, status, registered_at, checked_
   (4, 3, 'checked_in', '2026-05-18 09:10:00', '2026-05-20 13:57:00'),
   (4, 4, 'registered', '2026-05-18 09:20:00', NULL);
 
+-- activity_notices 演示数据：每条通知通过 activity_id 归属于一个活动。
+-- 删除活动事务会同步删除该活动的通知，取消报名事务会新增一条取消日志。
 INSERT INTO activity_notices (activity_id, title, content, published_at) VALUES
   (1, '请提前入场', '请报名同学提前 10 分钟到达公共教学楼A区签到。', '2026-05-26 13:00:00'),
   (1, '携带电脑', '现场会交流数据库关系图和 SQL 文件整理方式，建议携带电脑。', '2026-05-26 14:00:00'),
