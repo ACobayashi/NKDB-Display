@@ -80,26 +80,25 @@ http://localhost:3000
 7. 在“活动积分结算”选择五月数据库实践工作坊，点击“执行结算”，说明存储过程 `sp_finish_activity` 批量更新积分、报名状态和活动状态。
 8. 再次结算同一个活动，说明存储过程阻止重复加分。
 9. 在“活动数据删除”选择活动，点击“删除活动”，说明后端使用 `BEGIN / COMMIT / ROLLBACK` 保证活动、报名和通知一起删除。
+10. 点击“活动通知”，说明 `activity_notices` 保存活动通知和取消报名等操作留痕。
 
 ## 五、文件树
 
 ```text
 campus-activity-db/
+├── 数据库工程作业.docx
 ├── README.md
+├── package.json
 ├── database/
 │   ├── 01_schema.sql
 │   ├── 02_seed.sql
 │   ├── 03_triggers.sql
 │   ├── 04_procedures.sql
-│   └── 05_views.sql
-├── report/
-│   ├── REPORT_DRAFT.md
-│   ├── 数据库工程作业报告_填写稿.docx
-│   ├── scripts/
-│   │   └── make_report_docx.py
-│   └── screenshots/
+│   ├── 05_views.sql
+│   └── IMPORT_ORDER.md
 ├── server/
 │   ├── package.json
+│   ├── package-lock.json
 │   ├── .env.example
 │   └── src/
 │       ├── app.js
@@ -107,5 +106,6 @@ campus-activity-db/
 └── web/
     ├── index.html
     ├── styles.css
-    └── app.js
+    ├── app.js
+    └── assets/
 ```

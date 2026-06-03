@@ -6,3 +6,5 @@ report/REPORT_DRAFT.md
 report/scripts/
 report/*.docx
 report/screenshots/
+report/final_screenshots/
+report/rendered/
