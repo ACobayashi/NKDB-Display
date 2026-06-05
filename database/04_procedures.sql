@@ -1,34 +1,30 @@
 USE campus_activity_db;
 
--- 如果存储过程已经存在，先删除，避免重复导入时报错。
 DROP PROCEDURE IF EXISTS sp_finish_activity;
 
 DELIMITER //
 
--- sp_finish_activity：活动积分结算存储过程。
--- 入参 p_activity_id 表示要结算的活动，p_extra_points 表示额外奖励积分。
--- 作用：批量给已签到学生加分，并同步更新报名状态和活动状态。
+-- 活动积分结算存储过程。p_activity_id 表示要结算的活动，p_extra_points 表示额外奖励积分。
 CREATE PROCEDURE sp_finish_activity(
   IN p_activity_id INT,
   IN p_extra_points INT
 )
 BEGIN
-  -- v_exists：活动是否存在。
+  -- 活动是否存在。
   DECLARE v_exists INT DEFAULT 0;
-  -- v_status：活动当前状态，只有 open 状态允许结算。
+  -- 动当前状态，只有 open 状态允许结算。
   DECLARE v_status VARCHAR(20);
-  -- v_activity_points：活动本身的基础积分。
+  -- 活动本身的基础积分。
   DECLARE v_activity_points INT DEFAULT 0;
-  -- v_checked_count：该活动已签到报名记录数量。
+  -- 该活动已签到报名记录数量。
   DECLARE v_checked_count INT DEFAULT 0;
 
-  -- 第一步：检查额外积分，不能传负数。
+
   IF p_extra_points < 0 THEN
     SIGNAL SQLSTATE '45000'
       SET MESSAGE_TEXT = '结算失败：额外积分不能为负数';
   END IF;
 
-  -- 第二步：检查活动是否存在。
   SELECT COUNT(*) INTO v_exists
   FROM activities
   WHERE activity_id = p_activity_id;
@@ -45,13 +41,13 @@ BEGIN
   FROM activities
   WHERE activity_id = p_activity_id;
 
-  -- 第三步：检查活动状态，避免 finished 活动被重复结算、重复加分。
+  -- 检查活动状态，避免 finished 活动被重复结算、重复加分
   IF v_status <> 'open' THEN
     SIGNAL SQLSTATE '45000'
       SET MESSAGE_TEXT = '结算失败：只有 open 状态的活动可以结算，避免重复加分';
   END IF;
 
-  -- 第四步：统计已签到人数，只有 checked_in 的报名记录才参与加分。
+  -- 统计已签到人数，只有 checked_in 的报名记录才参与加分。
   SELECT COUNT(*) INTO v_checked_count
   FROM registrations
   WHERE activity_id = p_activity_id
@@ -63,9 +59,7 @@ BEGIN
       SET MESSAGE_TEXT = '结算失败：没有已签到学生，不能批量加分';
   END IF;
 
-  -- 第五步：更新 users.points。
-  -- 连接关系：users.user_id = registrations.user_id。
-  -- 修改规则：学生原积分 + 活动基础积分 + 额外积分。
+  -- 更新users.points。连接关系：users.user_id = registrations.user_id。学生原积分 + 活动基础积分 + 额外积分。
   UPDATE users AS u
   JOIN registrations AS r ON u.user_id = r.user_id
   SET u.points = u.points + v_activity_points + p_extra_points
@@ -73,13 +67,13 @@ BEGIN
     AND r.status = 'checked_in'
     AND u.role = 'student';
 
-  -- 第六步：把该活动已签到报名记录改为 completed，表示已完成结算。
+  -- 把该活动已签到报名记录改为completed，表示已完成结算。
   UPDATE registrations
   SET status = 'completed'
   WHERE activity_id = p_activity_id
     AND status = 'checked_in';
 
-  -- 第七步：把活动状态改为 finished，防止之后再次结算。
+  -- 把活动状态改为finished，防止之后再次结算。
   UPDATE activities
   SET status = 'finished'
   WHERE activity_id = p_activity_id;

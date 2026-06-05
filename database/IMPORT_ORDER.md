@@ -1,4 +1,3 @@
-# 数据库导入顺序
 
 1. `01_schema.sql`
    - 创建数据库 `campus_activity_db`
@@ -15,5 +14,3 @@
 
 5. `05_views.sql`
    - 创建活动统计视图 `v_activity_summary`
-
-注意：导入时只需要执行以上 5 个 SQL 文件。若演示过程中数据被改乱，可以从 `01_schema.sql` 重新按顺序导入。
